@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>완강기 순서 게임 (drag2, drag3 50%)</title>
+<style>
+  html, body { margin:0; height:100%; background:#f7fafc; font-family:system-ui,'Noto Sans KR',sans-serif; }
+  #game { position:relative; width:100vw; height:100vh; overflow:hidden; }
+  /* 임시 배경색만 사용 (필요하면 이미지로 교체) */
+  .dropzone { position:absolute; width:16vw; height:16vw; max-width:170px; max-height:170px; border:3px dashed rgba(0,0,0,.08); border-radius:14px; }
+  .draggable { position:absolute; width:18vw; max-width:190px; height:auto; cursor:grab; user-select:none; }
+  /* drag2/drag3는 시각적으로 50% 축소 */
+  #drag2, #drag3 { transform:scale(0.5); transform-origin: top left; }
+  /* 안내 */
+  .hint { position:fixed; left:12px; bottom:12px; background:rgba(0,0,0,.6); color:#fff; padding:8px 10px; border-radius:10px; font-size:14px; }
+</style>
+</head>
+<body>
+<div id="game">
+  <!-- 드롭존(오른쪽 정렬 예시) -->
+  <div id="zone1" class="dropzone" style="right:6vw; top:12vh;"></div>
+  <div id="zone2" class="dropzone" style="right:6vw; top:42vh;"></div>
+  <div id="zone3" class="dropzone" style="right:6vw; top:72vh;"></div>
+
+  <!-- 드래그 아이템 (좌측 시작). 위=drag3, 중간=drag2, 아래=drag1 -->
+  <img id="drag3" class="draggable" src="assets/완강기3.png" alt="완강기3" style="left:6vw; top:12vh;" draggable="true" />
+  <img id="drag2" class="draggable" src="assets/완강기2.png" alt="완강기2" style="left:6vw; top:42vh;" draggable="true" />
+  <img id="drag1" class="draggable" src="assets/완강기1.png" alt="완강기1" style="left:6vw; top:72vh;" draggable="true" />
+</div>
+<div class="hint">완강기3(위) → 완강기2(가운데) → 완강기1(아래) 그림을 각각 3개의 칸(오른쪽)으로 옮겨보세요.</div>
+
+<script>
+  const HOME_URL = "https://sites.google.com/view/mazerunning/%ED%99%88";
+  const map = { drag1:'zone1', drag2:'zone2', drag3:'zone3' }; // 1→1, 2→2, 3→3
+  let correct = 0;
+
+  // Drag start
+  document.querySelectorAll('.draggable').forEach(el => {
+    el.addEventListener('dragstart', e => e.dataTransfer.setData('id', e.target.id));
+  });
+
+  // Dropzones
+  document.querySelectorAll('.dropzone').forEach(zone => {
+    zone.addEventListener('dragover', e => e.preventDefault());
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('id');
+      const el = document.getElementById(id);
+
+      // 놓은 위치를 드롭존 좌상단으로 스냅
+      const r1 = zone.getBoundingClientRect();
+      const r2 = document.getElementById('game').getBoundingClientRect();
+      el.style.left = (r1.left - r2.left) + 'px';
+      el.style.top  = (r1.top  - r2.top)  + 'px';
+
+      // 정답 체크
+      if (map[id] === zone.id) {
+        if (!el.dataset.done) {
+          el.dataset.done = '1';
+          correct++;
+          if (correct === 3) {
+            alert('정답입니다! 메인으로 돌아갈게요.');
+            location.href = HOME_URL;
+          }
+        }
+      } else {
+        alert('틀렸습니다!');
+      }
+    });
+  });
+</script>
+</body>
+</html>
